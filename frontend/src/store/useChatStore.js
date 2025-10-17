@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUserLoading: false,
   isMessagesLoading: false,
+  recentChats: [], 
 
   getUsers: async () => {
     set({ isUserLoading: true });
@@ -36,7 +37,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
-    const { selectedUser, messages } = get();
+    const { selectedUser, messages, recentChats } = get();
     try {
       const res = await axiosInstance.post(
         `/messages/send/${selectedUser.id}`,
@@ -46,23 +47,52 @@ export const useChatStore = create((set, get) => ({
         }
       );
 
-      set({ messages: [...messages, res.data.message] });
+      // Update recent chats when sending message
+      const updatedRecentChats = [
+        selectedUser.id,
+        ...recentChats.filter((id) => id !== selectedUser.id),
+      ];
+
+      set({
+        messages: [...messages, res.data.message],
+        recentChats: updatedRecentChats,
+      });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send message");
     }
   },
 
   subscribeToMessages: () => {
-    const selectedUser = get();
-    if (!selectedUser) return;
-
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser =
-        newMessage.senderId !== selectedUser.id;
-      if (isMessageSentFromSelectedUser) return;
-      set({ messages: [...get().messages, newMessage] });
+      const { authUser } = useAuthStore.getState();
+      const { selectedUser, recentChats } = get();
+
+      // Update recent chats list
+      const otherUserId =
+        newMessage.senderId === authUser.id
+          ? newMessage.receiverId
+          : newMessage.senderId;
+
+      const updatedRecentChats = [
+        otherUserId,
+        ...recentChats.filter((id) => id !== otherUserId),
+      ];
+      set({ recentChats: updatedRecentChats });
+
+      // Only show messages for current conversation
+      if (selectedUser) {
+        const isMessageForCurrentChat =
+          (newMessage.senderId === selectedUser.id &&
+            newMessage.receiverId === authUser.id) ||
+          (newMessage.senderId === authUser.id &&
+            newMessage.receiverId === selectedUser.id);
+
+        if (isMessageForCurrentChat) {
+          set({ messages: [...get().messages, newMessage] });
+        }
+      }
     });
   },
 
@@ -73,5 +103,26 @@ export const useChatStore = create((set, get) => ({
 
   setSelectedUser: (selectedUser) => {
     set({ selectedUser });
+  },
+
+  getSortedUsers: () => {
+    const { users, recentChats } = get();
+    // Sort users: recent chats first, then alphabetically
+    return users.sort((a, b) => {
+      const aIndex = recentChats.indexOf(a.id);
+      const bIndex = recentChats.indexOf(b.id);
+
+      // If both have recent messages, sort by recency
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+
+      // If only one has recent messages, prioritize it
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+
+      // If neither has recent messages, sort alphabetically
+      return a.fullName.localeCompare(b.fullName);
+    });
   },
 }));

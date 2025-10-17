@@ -17,17 +17,19 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-screen my-11">
       {/* left side  */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
-              <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center group:hover:primary/20 transition-colors">
-                <MessageSquare className="size-6 text-primary" />
+              <div className="">
+                <h1 className="text-3xl font-bold">हल्का रमाईलो</h1>
               </div>
-              <h1 className="text-2xl font-bold mt-2">Welcome Back</h1>
+              <h1 className="text-xl font-bold mt-2">
+                Welcome Back to हल्का रमाईलो
+              </h1>
               <p className="text-base-content/60">
                 Login to your account to continue
               </p>

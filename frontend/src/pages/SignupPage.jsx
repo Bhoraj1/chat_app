@@ -38,19 +38,18 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-screen my-11">
       {/* left side  */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
-              <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center group:hover:primary/20 transition-colors">
-                <MessageSquare className="size-6 text-primary" />
+              <div className="">
+                <h1 className="text-3xl font-bold">हल्का रमाईलो</h1>
               </div>
-              <h1 className="text-2xl font-bold mt-2">Create Account</h1>
               <p className="text-base-content/60">
-                Get Started with your free account
+                Get Started with free account
               </p>
             </div>
           </div>
@@ -68,7 +67,7 @@ const SignupPage = () => {
                 <input
                   type="text"
                   className="input input-bordered w-full pl-10"
-                  placeholder="John Doe"
+                  placeholder="Ram"
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })

@@ -6,8 +6,14 @@ import defaultImg from "../assets/profile.png";
 import { useAuthStore } from "../store/useAuthStore";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUserLoading } =
-    useChatStore();
+  const {
+    getUsers,
+    users,
+    selectedUser,
+    setSelectedUser,
+    isUserLoading,
+    getSortedUsers,
+  } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const baseUrl = import.meta.env.VITE_BASE_IMG_URL;
@@ -16,9 +22,10 @@ const Sidebar = () => {
     getUsers();
   }, [getUsers]);
 
+  const sortedUsers = getSortedUsers();
   const filteredUsers = showOnlineOnly
-    ? users.filter((user) => onlineUsers.includes(String(user.id)))
-    : users;
+    ? sortedUsers.filter((user) => onlineUsers.includes(String(user.id)))
+    : sortedUsers;
 
   if (isUserLoading) return <SidebarSkeleton />;
 
@@ -47,7 +54,7 @@ const Sidebar = () => {
         </div>
       </div>
       <div className="overflow-y-auto w-full py-3">
-        {filteredUsers?.map((user) => (
+        {filteredUsers?.map((user, index) => (
           <button
             key={user.id}
             onClick={() => setSelectedUser(user)}
@@ -57,6 +64,12 @@ const Sidebar = () => {
               ${
                 selectedUser?.id === user.id
                   ? "bg-base-300 ring-1 ring-base-300"
+                  : ""
+              }
+              ${
+                index < 3 &&
+                useChatStore.getState().recentChats.includes(user.id)
+                  ? "border-l-2 border-blue-500"
                   : ""
               }
             `}
@@ -79,8 +92,13 @@ const Sidebar = () => {
             </div>
 
             {/* User info - only visible on larger screens */}
-            <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate">{user.fullName}</div>
+            <div className="hidden lg:block text-left min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <div className="font-medium truncate">{user.fullName}</div>
+                {useChatStore.getState().recentChats.includes(user.id) && (
+                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                )}
+              </div>
               <div className="text-sm text-zinc-400">
                 {onlineUsers.includes(String(user.id)) ? "Online" : "Offline"}
               </div>
@@ -89,9 +107,7 @@ const Sidebar = () => {
         ))}
 
         {filteredUsers.length === 0 && (
-          <div className="text-center text-zinc-500 py-4">
-            No Online users
-          </div>
+          <div className="text-center text-zinc-500 py-4">No Online users</div>
         )}
 
         {users?.length === 0 && (
