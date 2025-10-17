@@ -18,6 +18,7 @@ app.use(
     credentials: true,
   })
 );
+app.use("/uploads", express.static("uploads/"));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -26,7 +27,7 @@ app.get("/", (req, res) => {
 async function startServer() {
   await dbConnect();
   app.use("/api/v1/auth", authRoutes);
-  app.use("/api/v1/message", messageRoutes);
+  app.use("/api/v1/messages", messageRoutes);
   app.use(globalErrorHandler);
 
   app.listen(PORT, () => {

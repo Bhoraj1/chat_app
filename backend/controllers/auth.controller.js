@@ -97,12 +97,25 @@ export const updateProfile = async (req, res, next) => {
       return res.status(400).json({ message: "Profile picture is required" });
     }
 
+    // Get current profile pic to delete later
+    const [currentUser] = await db.execute(
+      "SELECT profilePic FROM users WHERE id = ? LIMIT 1",
+      [userId]
+    );
+    
+    const oldProfilePic = currentUser[0]?.profilePic;
+
     profilePicPath = await processImage(req.file);
 
     await db.execute("UPDATE users SET profilePic = ? WHERE id = ? LIMIT 1", [
       profilePicPath,
       userId,
     ]);
+
+    // Delete old profile pic if it exists
+    if (oldProfilePic) {
+      await deleteFile(oldProfilePic);
+    }
 
     res.status(200).json({
       message: "Profile picture updated successfully",
