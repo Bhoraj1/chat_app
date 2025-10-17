@@ -1,6 +1,7 @@
 import { db } from "../config/db.connect.js";
 import { processImage } from "../lib/imageProcessor.js";
 import { deleteFile } from "../lib/fileHelper.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 export const getUsers = async (req, res, next) => {
   const currentUserId = req.user.id;
 
@@ -52,6 +53,11 @@ export const sendMessage = async (req, res, next) => {
       "SELECT * FROM messages WHERE id = ? LIMIT 1",
       [result.insertId]
     );
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", message[0]);
+    }
 
     res.status(201).json({ message: message[0] });
   } catch (error) {

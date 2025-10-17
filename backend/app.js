@@ -6,15 +6,15 @@ import authRoutes from "./routes/auth.route.js";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler.js";
 import cookieParser from "cookie-parser";
 import messageRoutes from "./routes/message.route.js";
+import { app, server } from "./lib/socket.js";
 
-const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRON_URL || "http://localhost:5173",
     credentials: true,
   })
 );
@@ -30,7 +30,7 @@ async function startServer() {
   app.use("/api/v1/messages", messageRoutes);
   app.use(globalErrorHandler);
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on PORT ${PORT}`);
   });
 }

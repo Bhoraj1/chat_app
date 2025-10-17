@@ -5,15 +5,37 @@ import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import { useAuthStore } from "../store/useAuthStore";
 import defaultImg from "../assets/profile.png";
+import { useRef } from "react";
 const ChatContainer = () => {
   const baseUrl = import.meta.env.VITE_BASE_IMG_URL;
-  const { messages, getMessages, isMessagesLoading, selectedUser } =
-    useChatStore();
+  const {
+    messages,
+    getMessages,
+    isMessagesLoading,
+    selectedUser,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
   const { authUser } = useAuthStore();
-
+  const messageRef = useRef(null);
   useEffect(() => {
     getMessages(selectedUser.id);
-  }, [selectedUser?.id, getMessages]);
+    subscribeToMessages();
+
+    return () => unsubscribeFromMessages();
+  }, [
+    selectedUser?.id,
+    getMessages,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  ]);
+
+  useEffect(() => {
+    if (!messages.length) return;
+    messageRef.current?.lastElementChild?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
   if (isMessagesLoading) return <MessageSkeleton />;
 
   return (
@@ -26,6 +48,7 @@ const ChatContainer = () => {
             className={`chat ${
               message.senderId === authUser.id ? "chat-end" : "chat-start"
             }`}
+            ref={messageRef}
           >
             <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
